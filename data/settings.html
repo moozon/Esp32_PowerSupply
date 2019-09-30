@@ -1,0 +1,158 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <!--<meta http-equiv="refresh" content="5">-->   
+    <style>
+        body {
+            background-color: #cccccc;
+            font-family: Arial, Helvetica, Sans-Serif;
+            Color: #000088;
+        }
+    </style>
+
+    <title>Power Supply on Esp32 Settings</title>  
+	
+</head>
+<body>
+    <h1>Power Supply on Esp32 Settings:</h1>
+    <form action="/save_config" method="POST" name="form">
+        <fieldset>
+            <legend>Settings:</legend>
+            <p><input type="checkbox" name="debug" id="debug_checkbox" onclick="debug_Click(this)">  Debug</p>
+            <p><input type="checkbox" id="debug_wifi_checkbox" name="debug_wifi" onclick="debug_wifi_Click(this)">  WiFi Debug</p>
+            <p><input type="checkbox" name="blink" id="blink_checkbox" onclick="saveConfig()">  Blink</p>
+            <p><input type="checkbox" name="APmode" id="ap_mode_checkbox" onclick="saveConfig()">  APmode</p>
+            <p><input type="checkbox" name="ftpServer" id="ftp_server_checkbox" onclick="saveConfig()">  Ftp Server</p>
+            <p><input type="text" name="ssid" id="ssid_textBox" size="20">  SSID</p>
+            <p><input type="password" name="password" id="pass_textBox" size="20">  Password</p>  
+            <input type="button" value="Save settings" id="saveconfig_button" onclick="saveConfig()">
+            <input type="button" value="Save settings to file" id="saveconfig_to_file_button" onclick="saveConfigToFile()">
+            <button type="submit"> Submit</button>
+        </fieldset>
+    </form>
+    <br />
+    <br />
+    <form action="/save_config" method="post">        
+        <p><b>WiFi Debug output:</b></p>
+        <p><textarea rows="10" cols="100" name="text" id="debug_wifi_textarea"></textarea></p>
+        <p><input type="submit" value="Submit"></p>
+    </form>
+    <input type="button" value="Send JSon" id="sendJson" onclick="sendJson()"><br />
+    <input type="button" value="Reset" id="reset_button" onclick="reset()"><br />
+    <input type="button" value="Back" id="settings_button" onclick="window.location='/'"><br />
+    <script>
+        setInterval(function () { debugWiFi(); updateUI(); }, 1000);
+        var debug_wifi;
+        //getValues();
+        getConfig();
+        //setTimeout(function () { preLoad(); }, 1000);
+        ///////////////////////////////////
+
+        function updateUI() {
+            if (!document.getElementById('debug_checkbox').checked)
+                document.getElementById("debug_wifi_checkbox").disabled = true;
+            else
+                document.getElementById("debug_wifi_checkbox").disabled = false;
+        }
+
+        function debug_Click(cb) {
+            if (debug_wifi) {
+                debug_wifi = false;
+                document.getElementById("debug_wifi_checkbox").checked = false;
+            }
+            //else {
+            //    debug_wifi = true;
+            //    if (debug_wifi)
+            //    document.getElementById("debug_wifi_checkbox").checked = true;
+            //}
+            updateUI();
+            saveConfig();
+        }
+        function debug_wifi_Click(cb) {
+            if (debug_wifi) debug_wifi = false;
+            else debug_wifi = true;
+        }
+        async function debugWiFi() {
+            if (debug_wifi) {
+                let response = await fetch('/get_debug_wifi');
+                if (response.ok) {
+                    let respMsgTxt = await response.text();
+                    if (document.getElementById('debug_wifi_textarea').textContent == "")
+                        document.getElementById('debug_wifi_textarea').textContent += respMsgTxt;
+                    else document.getElementById('debug_wifi_textarea').textContent += "\n" + respMsgTxt;
+
+                } else {
+                    //console.log(response.status);
+                    alert("Ошибка HTTP: " + response.status);
+                }
+            }
+        }
+
+        async function saveConfig() {
+            let str = { blink: document.getElementById('blink_checkbox').checked };
+            let config = {
+                APmode: document.getElementById('ap_mode_checkbox').checked,
+                ftpServer: document.getElementById('ftp_server_checkbox').checked,
+                debug: document.getElementById('debug_checkbox').checked,
+                blink: document.getElementById('blink_checkbox').checked,
+                ssid: document.getElementById('ssid_textBox').value,
+                password: document.getElementById('pass_textBox').value
+            };
+            let response = await fetch('/save_config', {
+                method: 'POST',
+                //headers: {'Content-Type': 'application/json;charset=utf-8'},
+                body: JSON.stringify(str)
+                //body: config
+            });
+        }
+
+        async function getConfig() {
+            let response = await fetch('/get_config');
+            if (response.ok) {
+                let respMsgJSon = await response.json();
+                document.getElementById('ftp_server_checkbox').checked = respMsgJSon["ftpServer"];
+                document.getElementById('ap_mode_checkbox').checked = respMsgJSon["APmode"];
+                document.getElementById('debug_checkbox').checked = respMsgJSon["debug"];
+                document.getElementById('blink_checkbox').checked = respMsgJSon["blink"];
+                document.getElementById('ssid_textBox').value = respMsgJSon["ssid"];
+                document.getElementById('pass_textBox').value = respMsgJSon["password"];
+            } else {
+                //console.log(response.status);
+                alert("Ошибка HTTP: " + response.status);
+            }
+        }
+
+        function update() {
+            if (ON) {
+                document.getElementById('ON').textContent = 'ON';
+                document.getElementById('on_button').value = 'ON';
+            }
+            else {
+                document.getElementById('ON').textContent = 'OFF';
+                document.getElementById('on_button').value = 'OFF';
+            }
+        }
+
+        function on() {
+            if (ON) ON = false;
+            else ON = true;
+            //ON = !ON;
+            var request = new XMLHttpRequest();
+            var params = 'on=' + ON;
+            request.open('GET', '/on?' + params, true);
+            request.send();
+
+        }
+
+        async function reset() {
+            fetch('/reset');
+        }
+
+        async function saveConfigToFile() {
+            saveConfig();
+            await fetch('/save_to_file');
+        }
+    </script>
+</body>
+</html>

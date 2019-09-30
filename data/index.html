@@ -1,0 +1,154 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <!--<meta http-equiv="refresh" content="5">-->   
+    <style>
+        body {
+            background-color: #cccccc;
+            font-family: Arial, Helvetica, Sans-Serif;
+            Color: #000088;
+        }
+    </style>
+
+    <title>Power Supply on Esp32</title>   
+</head>
+<body>
+
+    <h1>Power Supply on Esp32</h1>
+    <p>Time: <output id="time">0</output></p>
+    <p>Date: <output id="date">0</output></p>
+    <p>U: <output id="u">0</output></p>
+    <p>I: <output id="i">0</output></p>
+    <p>P: <output id="p">0</output></p>
+    <p>USet: <output id="uSet">0</output></p>
+    <p>ISet: <output id="iSet">0</output></p>
+    <p>ON: <output id="ON">0</output></p>
+
+
+    <input type="button" value="Switch Led (On/Off)" id="led_button" onclick="ledSwitch()"><br /><br /><br />
+    <input type="text" name="textBoxU" id="setU_textBox" size="20">
+    <input type="button" value="Set U" id="setU_button" onclick="setU()"><br />
+    <input type="text" name="textBoxI" id="setI_textBox" size="20">
+    <input type="button" value="Set I" id="setI_button" onclick="setI()"><br /><br /><br />
+    <input type="button" value="Increase U" id="incU_button" onclick="incU()">
+    <input type="button" value="Decrease U" id="decU_button" onclick="decU()">
+    <input type="button" value="Increase I" id="incI_button" onclick="incI()">
+    <input type="button" value="Decrease I" id="decI_button" onclick="decI()"><br /><br />
+    <input type="button" value="ON/OFF" id="on_button" onclick="on()"><br />
+    <input type="button" value="Reset" id="reset_button" onclick="reset()"><br />
+    <input type="button" value="Settings" id="settings_button" onclick="window.location='/settings.html'"><br />
+
+
+    <script>
+        var ON;
+
+        // Реализация метода fetch с Async/Await
+        async function getValues() {
+            let response = await fetch('/get_values');
+            if (response.ok) {
+                //let respMsgText = await response.text();
+                //let parsedMessage = JSON.stringify(respMsgText);
+                let respMsgJSon = await response.json();
+                document.getElementById('time').value = respMsgJSon["time"];
+                document.getElementById('date').value = respMsgJSon["date"];
+                document.getElementById('u').value = respMsgJSon["U"];
+                document.getElementById('i').textContent = respMsgJSon["I"];
+                document.getElementById('p').textContent = respMsgJSon["P"];
+                document.getElementById('uSet').textContent = respMsgJSon["USet"];
+                document.getElementById('iSet').textContent = respMsgJSon["ISet"];
+                ON = respMsgJSon["ON"];
+                //document.getElementById('ON').textContent = respMsgJSon["ON"];
+                //document.getElementById('on_button').value = respMsgJSon["ON"];
+            } else {
+                //console.log(response.status);
+                alert("Ошибка HTTP: " + response.status);
+            }
+        }
+        // Реализация метода fetch без Async/Await
+        function getValues2() {
+            fetch('/get_values')
+                .then(response => response.json())
+                .then(result => document.getElementById('u').textContent = result["U"]);
+            //console.log(result["U"]);
+        }
+        function updateUI() {
+            if (ON) {
+                document.getElementById('ON').textContent = 'ON';
+                //document.getElementById('on_button').value = 'ON';
+            }
+            else {
+                document.getElementById('ON').textContent = 'OFF';
+                //document.getElementById('on_button').value = 'OFF';
+            }
+        }
+        function on() {
+            if (ON) ON = false;
+            else ON = true;
+            //ON = !ON;
+            var request = new XMLHttpRequest();
+            var params = 'on=' + ON;
+            request.open('GET', '/on?' + params, true);
+            request.send();
+
+
+            //let params = 'on=' + val;
+            //let response = await fetch('/on?'+params);
+            //if (response.ok) {
+
+            //} else {
+            //    //console.log(response.status);
+            //    alert("Ошибка HTTP: " + response.status);
+            //}
+        }
+        function setU() {
+            var request = new XMLHttpRequest();
+            var val = document.getElementById('setU_textBox').value;
+            var params = 'u=' + val;
+            request.open('GET', '/set_u?' + params, true);
+            request.send();
+        }
+        function setI() {
+            var request = new XMLHttpRequest();
+            var val = document.getElementById('setI_textBox').value;
+            var params = 'i=' + val;
+            request.open('GET', '/set_i?' + params, true);
+            request.send();
+        }
+        async function incU() {
+            await fetch('/inc_u');
+        }
+        async function decU() {
+            await fetch('/dec_u');
+        }
+        function incI() {
+            var request = new XMLHttpRequest();
+            request.open('GET', '/inc_i', true);
+            request.send();
+        }
+        function decI() {
+            var request = new XMLHttpRequest();
+            request.open('GET', '/dec_i', true);
+            request.send();
+        }
+        function ledSwitch() {
+            var request = new XMLHttpRequest();
+            request.open('GET', '/led_switch', true);
+            request.send();
+        }
+        function reset() {
+            fetch('/reset');
+        }
+        function settings() {
+            fetch('/settings.html');
+        }
+
+
+        setInterval(function () {
+            getValues();
+            updateUI();
+        },
+            1000);
+    </script>
+</body>
+</html>
