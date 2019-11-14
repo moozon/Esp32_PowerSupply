@@ -1,3 +1,16 @@
+void taskEncoder(void* pvParameters)
+{
+	(void)pvParameters;
+
+#ifdef DEBUG
+	Serial.println("TaskEncoder is running");
+#endif // DEBUG
+
+	for (;;)
+	{
+		vTaskDelay(1000);
+	}
+}
 // Encoder Init
 void encoderInit() {
 	pinMode(PIN_SW, INPUT_PULLUP);
@@ -6,6 +19,9 @@ void encoderInit() {
 	digitalWrite(PIN_A, HIGH);
 	digitalWrite(PIN_B, HIGH);
 	attachInterrupt(PIN_A, handler_a, CHANGE);
+#ifdef DEBUG
+	Serial.println("encoderInit");
+#endif // DEBUG
 }
 void oneButtonInit() {
 	oneButton.attachClick(click);
@@ -14,18 +30,12 @@ void oneButtonInit() {
 	//oneButton.attachLongPressStop(longPressStop); //  онец длительного нажати€	
 	//oneButton.attachDuringLongPress(duringLongPress); // ћногократное нажатие при удержании	
 	//oneButton.setDebounceTicks(100000);
+
+#ifdef DEBUG
+	Serial.println("oneButtonInit");
+#endif // DEBUG
 }
 // Encoder methods BEGIN
-void taskEncoder(void* pvParameters)
-{
-	(void)pvParameters;
-	//Serial.println("TaskEncoder is running");
-
-	for (;;)
-	{
-		vTaskDelay(1000);
-	}
-}
 void handler_a() {
 	byte A = digitalRead(PIN_A);
 	//if (!fl) { // пока не отчитались ничего больше не делаем

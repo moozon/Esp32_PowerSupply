@@ -20,17 +20,21 @@ bool loadConfigsFromFile() {
 	Serial.println("APmode load from config file: " + String(config.APmode));
 	config.debug = jsonDoc["debug"];
 	Serial.println("Debug load from config file: " + String(config.debug));
+	config.debugWiFi = jsonDoc["debugWiFi"];
+	Serial.println("DebugWiFi load from config file: " + String(config.debugWiFi));
 	config.blink = jsonDoc["blink"];
 	Serial.println("Blink load from config file: " + String(config.blink));
+	config.blinkDelay = jsonDoc["blinkDelay"];
+	Serial.println("blinkDelay load from config file: " + String(config.blinkDelay));
 	config.uSet = jsonDoc["setU"];
 	Serial.println("uSet load from config file: " + String(config.uSet));
 	config.iSet = jsonDoc["setI"];
 	Serial.println("iSet load from config file: " + String(config.iSet));
 
-	strlcpy(config.ssid, jsonDoc["ssid"], sizeof(config.ssid));
+	//strlcpy(config.ssid, jsonDoc["ssid"], 25);
 	//strncpy(config.ssid, jsonDoc["ssid"], sizeof(config.ssid));
 	Serial.println("Ssid load from config file: " + String(config.ssid));
-	strlcpy(config.password, jsonDoc["password"], sizeof(config.password));
+	//strlcpy(config.password, jsonDoc["password"], 25);
 	//strncpy(config.password, jsonDoc["password"], sizeof(config.password));
 	Serial.println("Password load from config file: " + String(config.password));
 
@@ -60,7 +64,9 @@ bool saveConfigsToFile() {
 
 	jsonDoc["APmode"] = config.APmode;
 	jsonDoc["debug"] = config.debug;
+	jsonDoc["debugWiFi"] = config.debugWiFi;
 	jsonDoc["blink"] = config.blink;
+	jsonDoc["blinkDelay"] = config.blinkDelay;
 	jsonDoc["setU"] = config.uSet;
 	jsonDoc["setI"] = config.iSet;
 	jsonDoc["ssid"] = config.ssid;

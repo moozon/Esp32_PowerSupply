@@ -3,13 +3,19 @@ void LCDInit() {
 	lcd.init();
 	lcd.backlight();
 	lcd.noAutoscroll();
+
+#ifdef DEBUG
+	Serial.println("LCDInit");
+#endif // DEBUG
 }
 
 // LCD methods BEGIN
 void taskLCD(void* pvParameters)
 {
 	(void)pvParameters;
-	//Serial.println("TaskLCD is running");
+#ifdef DEBUG
+	Serial.println("TaskLCD is running");
+#endif // DEBUG
 
 	for (;;)
 	{

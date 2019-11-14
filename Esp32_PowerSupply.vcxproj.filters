@@ -117,6 +117,7 @@
     <None Include="Tasks.ino" />
     <None Include="PowerSupply.ino" />
     <None Include="Config.ino" />
+    <None Include="Blynk.ino" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.Esp32_PowerSupply.vsarduino.h">

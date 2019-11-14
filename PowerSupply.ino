@@ -14,7 +14,7 @@ bool setI(double value) {
 	return false;
 }
 bool incU(uint8_t position) {
-	Serial.println("incU");
+	//Serial.println("incU");
 	if (menu[0].valueSet < 30) { //Проверка устанавливаемого U на превышение
 		if (position == 0) {
 			double tmp = menu[0].valueSet;
@@ -29,7 +29,7 @@ bool incU(uint8_t position) {
 	return false;
 }
 bool decU(uint8_t position) {
-	Serial.println("decU");
+	//Serial.println("decU");
 	if (menu[0].valueSet > 0) { //Проверка устанавливаемого U на 0
 		if (position == 0) {// Проверяем U на минус 
 			double tmp = menu[0].valueSet;
@@ -44,7 +44,7 @@ bool decU(uint8_t position) {
 	return false;
 }
 bool incI(uint8_t position) {
-	Serial.println("incI");
+	//Serial.println("incI");
 	if (menu[1].valueSet < 10) {
 		if (position == 0) {
 			double tmp = menu[1].valueSet;
@@ -59,7 +59,7 @@ bool incI(uint8_t position) {
 	return false;
 }
 bool decI(uint8_t position) {
-	Serial.println("decI");
+	//Serial.println("decI");
 	if (menu[1].valueSet > 0) { // Проверка устанавливаемого I на 0
 		if (position == 0) {	// Проверяем I на минус 
 			double tmp = menu[1].valueSet;

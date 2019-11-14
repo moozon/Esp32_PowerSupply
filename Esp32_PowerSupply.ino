@@ -16,15 +16,23 @@
 #include <OneButton.h>
 #include <Wire.h> 
 #include <LiquidCrystal_I2C.h>
+#include <BlynkSimpleEsp32.h>
 
 // FTP Server
 // To define FTP_DEBUG in ESP8266FtpServer.h for debug
-#define FTP_SERVER
+//#define FTP_SERVER
 #ifdef FTP_SERVER
 #include <WiFi.h>
 #include "SPIFFS.h"
 #include <ESP8266FtpServer.h>
 #endif // FTP_SERVER
+
+
+// Blynk
+//#define BLYNK_DEFAULT_DOMAIN     "moozon.ddns.info"
+//#define BLYNK_DEFAULT_PORT       8080
+//#define BLYNK_DEFAULT_PORT_SSL   443
+//char auth[] = "96a99b2e59c044f49a432c88ee2d6546";
 
 
 // Ping
@@ -34,9 +42,11 @@
 #include <TimeLib.h>
 #include <NTPClientLib.h>
 #include "AsyncUDP.h"
+//#include <WiFiUdp.h>
 
 
 // User Define
+//#define DEBUG
 #define PING_AVERAGE_SIZE 10
 #define TASK_STACK_SIZE 2048
 #define LED_BUILTIN 22
@@ -53,11 +63,7 @@
 #define PATH_CONFIG_FILE "/config.json"
 
 // FreeRTOS Init Begin
-#if CONFIG_FREERTOS_UNICORE
-#define ARDUINO_RUNNING_CORE 0
-#else
 #define ARDUINO_RUNNING_CORE 1
-#endif
 //#define CONFIG_FREERTOS_VTASKLIST_INCLUDE_COREID
 //#define INCLUDE_vTaskDelete 1
 //#define INCLUDE_vTaskSuspend 1
@@ -78,6 +84,7 @@ TaskHandle_t xHandleTaskMeasure;
 TaskHandle_t xHandleTaskTest;
 TaskHandle_t xHandleTaskCalc;
 TaskHandle_t xHandleTaskAPmode;
+TaskHandle_t xHandleTaskBlynk;
 
 
 void taskMain(void *pvParameters);
@@ -91,7 +98,13 @@ void taskMeasure(void *pvParameters);
 void taskTest(void *pvParameters);
 void taskCalc(void *pvParameters);
 void taskAPmode(void* pvParameters);
+void taskBlynk(void* pvParameters);
 // FreeRTOS Init END
+
+// WebUpdate
+#include <Update.h>
+//const char* updateIndex = "<form method='POST' action='/update_firmware' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Update'></form>";
+
 
 // FTP Server Init BEGIN
 #ifdef FTP_SERVER
@@ -104,6 +117,7 @@ FtpServer ftpSrv;   //set #define FTP_DEBUG in ESP8266FtpServer.h to see ftp ver
 
 // NTP Init BEGIN
 AsyncUDP udp;
+//WiFiUDP udp;
 // NTP Init END
 
 unsigned int localPort = 8888;  // local port to listen for UDP packets
@@ -175,7 +189,6 @@ const uint8_t screen_cnt = 3;
 volatile int ticks1 = 0;
 volatile int ticks2 = 0;
 volatile char buf[1024];
-volatile uint32_t ledBlinkDelay = 1000;
 const char* hostName = "esp32";
 volatile bool ON = false;
 volatile bool updLcd = true;
@@ -192,7 +205,7 @@ volatile bool uSetOver = false;
 volatile bool iSetOver = false;
 volatile bool pOver = false;
 
-String debugString = "";
+String debugWiFiStr = "";
 
 
 // WiFiSetup
@@ -221,15 +234,18 @@ char AP_PassChar[32];
 #define AP_PASSWORD_PREFIX "SECRET" // + mac XXXX
 #define AP_PASSWORD_SUFFIX ""
 
+
 struct Config {
 	bool APmode;
 	bool debug;
-	bool blink;
+	bool debugWiFi;
+	bool blink = true;
 	bool ftpServer;
 	double uSet;
 	double iSet;
-	char ssid[17] = "MyHomeMts";
-	char password[17] = "ripas2005";
+	char* ssid = "MyHomeMts";
+	char* password = "ripas2005";
+	uint32_t blinkDelay = 1000;
 	//String ssid;
 	//String password;
 } config;
@@ -272,9 +288,8 @@ void setup() {
 	}
 	
 	// Load configuration from config file from SPIFFS
-	//saveConfigsToFile();
+	//saveConfigsToFile();	// Need run once for NULL Value Exception on first loadConfigsFromFile()
 	loadConfigsFromFile();
-
 	uSet = config.uSet;
 	iSet = config.iSet;
 	debug = config.debug;
@@ -324,6 +339,9 @@ void setup() {
 		// NTP Setup
 		NTPInit();
 
+		// Blynk Setup
+		blynkInit();
+
 		// OneButton Setup
 		oneButtonInit();
 
@@ -336,7 +354,7 @@ void setup() {
 		// Обовление задач основываясь на конфиг файл.
 		updateConfigs();
 
-		Serial.println("Setup STA End");
+		Serial.println("Setup STA Mode End");
 
 		//vTaskGetRunTimeStats(buf);
 	}// AP / STA End 
@@ -344,18 +362,8 @@ void setup() {
 }
 // Empty Task runs on Core 1
 void loop()
-{
-	//server.handleClient();
-	//delay(1);
-	//Serial.println("loop   - " + String(xPortGetCoreID()) + "  Free: " + String(xPortGetFreeHeapSize()));
-	//delay(1000);
-	//ticks2++;
-	//Serial.println(NTP.getTimeDateString());
+{	
 	timeUpdate();
-	Serial.print(".");
+	//Serial.print(".");
 	vTaskDelay(1000);
 }
-
-
-// Other methods BEGIN
-// Other methods BEGIN

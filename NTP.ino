@@ -3,6 +3,10 @@ void NTPInit() {
 	NTP.setInterval(63);
 	NTP.setNTPTimeout(NTP_TIMEOUT);
 	NTP.begin(ntpServer, timeZone, true, minutesTimeZone, &udp);
+
+#ifdef DEBUG
+	Serial.println("NTPInit");
+#endif // DEBUG
 }
 
 // NTP methods BEGIN

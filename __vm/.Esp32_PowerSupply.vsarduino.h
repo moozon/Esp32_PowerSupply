@@ -17,6 +17,8 @@
 #define __ESP32_ESP32__
 #define ESP_PLATFORM
 #define HAVE_CONFIG_H
+#define GCC_NOT_5_2_0 0
+#define WITH_POSIX
 #define F_CPU 240000000L
 #define ARDUINO 108010
 #define ARDUINO_LOLIN32
@@ -105,6 +107,7 @@ typedef long pthread_cond_t;
 #define noInterrupts() cli()
 
 #include "Esp32_PowerSupply.ino"
+#include "Blynk.ino"
 #include "Config.ino"
 #include "Debug.ino"
 #include "Encoder.ino"

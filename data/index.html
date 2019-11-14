@@ -26,23 +26,23 @@
     <p>ON: <output id="ON">0</output></p>
 
 
-    <input type="button" value="Switch Led (On/Off)" id="led_button" onclick="ledSwitch()"><br /><br /><br />
+    <input type="button" value="Switch Led (On/Off)" id="led_button" onclick="ledSwitch();"><br /><br /><br />
     <input type="text" name="textBoxU" id="setU_textBox" size="20">
-    <input type="button" value="Set U" id="setU_button" onclick="setU()"><br />
+    <input type="button" value="Set U" id="setU_button" onclick="setU();"><br />
     <input type="text" name="textBoxI" id="setI_textBox" size="20">
-    <input type="button" value="Set I" id="setI_button" onclick="setI()"><br /><br /><br />
-    <input type="button" value="Increase U" id="incU_button" onclick="incU()">
-    <input type="button" value="Decrease U" id="decU_button" onclick="decU()">
-    <input type="button" value="Increase I" id="incI_button" onclick="incI()">
-    <input type="button" value="Decrease I" id="decI_button" onclick="decI()"><br /><br />
-    <input type="button" value="ON/OFF" id="on_button" onclick="on()"><br />
-    <input type="button" value="Reset" id="reset_button" onclick="reset()"><br />
+    <input type="button" value="Set I" id="setI_button" onclick="setI();"><br /><br /><br />
+    <input type="button" value="Increase U" id="incU_button" onclick="incU();">
+    <input type="button" value="Decrease U" id="decU_button" onclick="decU();">
+    <input type="button" value="Increase I" id="incI_button" onclick="incI();">
+    <input type="button" value="Decrease I" id="decI_button" onclick="decI();"><br /><br />
+    <input type="button" value="ON/OFF" id="on_button" onclick="on();"><br />
+    <input type="button" value="Reset" id="reset_button" onclick="reset();"><br />
     <input type="button" value="Settings" id="settings_button" onclick="window.location='/settings.html'"><br />
 
 
     <script>
         var ON;
-
+        setInterval(function () { getValues(); updateUI(); }, 1000);
         // Реализация метода fetch с Async/Await
         async function getValues() {
             let response = await fetch('/get_values');
@@ -61,8 +61,8 @@
                 //document.getElementById('ON').textContent = respMsgJSon["ON"];
                 //document.getElementById('on_button').value = respMsgJSon["ON"];
             } else {
-                //console.log(response.status);
-                alert("Ошибка HTTP: " + response.status);
+                console.log(response.status);
+                //alert("Ошибка HTTP: " + response.status);
             }
         }
         // Реализация метода fetch без Async/Await
@@ -82,73 +82,83 @@
                 //document.getElementById('on_button').value = 'OFF';
             }
         }
-        function on() {
+        async function on() {
             if (ON) ON = false;
             else ON = true;
             //ON = !ON;
-            var request = new XMLHttpRequest();
+            //var request = new XMLHttpRequest();
             var params = 'on=' + ON;
-            request.open('GET', '/on?' + params, true);
-            request.send();
+            let response = await fetch('/on?' + params);
+            if (!response.ok) {
+                alert("Ошибка HTTP: " + response.status);
+            }
+            //request.open('GET', '/on?' + params, true);
+            //request.send();
 
-
-            //let params = 'on=' + val;
-            //let response = await fetch('/on?'+params);
-            //if (response.ok) {
-
-            //} else {
-            //    //console.log(response.status);
-            //    alert("Ошибка HTTP: " + response.status);
-            //}
         }
-        function setU() {
-            var request = new XMLHttpRequest();
-            var val = document.getElementById('setU_textBox').value;
-            var params = 'u=' + val;
-            request.open('GET', '/set_u?' + params, true);
-            request.send();
+        async function setU() {
+            var params = 'u=' + document.getElementById('setU_textBox').value;
+            let response = await fetch('/set_u?' + params);
+            if (!response.ok) {
+                alert("Ошибка HTTP: " + response.status);
+            }
+            //var request = new XMLHttpRequest();
+            //var val = document.getElementById('setU_textBox').value;
+            //var params = 'u=' + val;
+            //request.open('GET', '/set_u?' + params, true);
+            //request.send();
         }
-        function setI() {
-            var request = new XMLHttpRequest();
-            var val = document.getElementById('setI_textBox').value;
-            var params = 'i=' + val;
-            request.open('GET', '/set_i?' + params, true);
-            request.send();
+        async function setI() {
+            var params = 'i=' + document.getElementById('setI_textBox').value;
+            let response = await fetch('/set_i?' + params);
+            if (!response.ok) {
+                alert("Ошибка HTTP: " + response.status);
+            }
+            
         }
         async function incU() {
-            await fetch('/inc_u');
+            let response = await fetch('/inc_u');
+            if (!response.ok) {
+                alert("Ошибка HTTP: " + response.status);
+            }
         }
         async function decU() {
-            await fetch('/dec_u');
+            let response = await fetch('/dec_u');
+            if (!response.ok) {
+                alert("Ошибка HTTP: " + response.status);
+            }
         }
-        function incI() {
-            var request = new XMLHttpRequest();
-            request.open('GET', '/inc_i', true);
-            request.send();
+        async function incI() {
+            let response = await fetch('/inc_i');
+            if (!response.ok) {
+                alert("Ошибка HTTP: " + response.status);
+            }
+            
         }
-        function decI() {
-            var request = new XMLHttpRequest();
-            request.open('GET', '/dec_i', true);
-            request.send();
+        async function decI() {
+            let response = await fetch('/dec_i');
+            if (!response.ok) {
+                alert("Ошибка HTTP: " + response.status);
+            }            
         }
-        function ledSwitch() {
-            var request = new XMLHttpRequest();
-            request.open('GET', '/led_switch', true);
-            request.send();
+        async function ledSwitch() {
+            let response = await fetch('/led_switch');
+            if (!response.ok) {
+                alert("Ошибка HTTP: " + response.status);
+            }              
         }
-        function reset() {
-            fetch('/reset');
+        async function reset() {
+            let response = await fetch('/reset');
+            if (!response.ok) {
+                alert("Ошибка HTTP: " + response.status);
+            }               
         }
-        function settings() {
-            fetch('/settings.html');
-        }
-
-
-        setInterval(function () {
-            getValues();
-            updateUI();
-        },
-            1000);
+        async function settings() {
+            let response = await fetch('/settings.html');
+            if (!response.ok) {
+                alert("Ошибка HTTP: " + response.status);
+            } 
+        }        
     </script>
 </body>
 </html>

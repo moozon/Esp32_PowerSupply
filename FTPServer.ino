@@ -1,6 +1,9 @@
 // FTP Server methods BEGIN
 void taskFTPServer(void* pvParameters) {
-#ifdef FTP_SERVER		
+#ifdef FTP_SERVER
+#ifdef DEBUG
+	Serial.println("TaskFTPServer is running");
+#endif // DEBUG
 
 	if (!config.ftpServer) vTaskSuspend(xHandleTaskFTPServer);
 
@@ -11,6 +14,6 @@ void taskFTPServer(void* pvParameters) {
 		ftpSrv.handleFTP();
 		vTaskDelay(1);
 	}
-#endif // FTP_SERVER
+#endif // DEBUG
 }
 // FTP Server methods END

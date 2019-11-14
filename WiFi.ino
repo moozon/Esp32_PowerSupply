@@ -1,38 +1,8 @@
-void WiFiInit() {
-	WiFi.mode(WIFI_STA);
-	WiFi.begin(config.ssid, config.password);
-	// Wait for connection
-	int pause = 0;
-	while (WiFi.status() != WL_CONNECTED) {
-		if (pause >= 60) {	// Если не удалось подключиться к роутеру в течении 60 сек. Перегружаемся в режим AP
-			config.APmode = true;
-			saveConfigsToFile();
-			Serial.println("Rebooting to AP Mode");
-			resetHandler();
-		}
-		delay(1000);
-		Serial.print(".");
-		pause++;
-	}
-	Serial.println("");
-	Serial.print("Connected to ");
-	Serial.println(config.ssid);
-	Serial.print("IP address: ");
-	Serial.println(WiFi.localIP());
-}
-
-void MDNSInit() {
-	if (MDNS.begin(hostName)) {
-		MDNS.addService("http", "tcp", 80);
-		Serial.println("MDNS responder started");
-		Serial.print("You can now connect to http://");
-		Serial.print(hostName);
-		Serial.println(".local");
-	}
-}
-
-// WiFi methods BEGIN
 void taskAPmode(void* pvParameters) {
+#ifdef DEBUG
+	Serial.println("TaskAPmode is running");
+#endif // DEBUG
+
 	WiFi.mode(WIFI_AP);
 	softAPinit();
 	Serial.print("1");
@@ -64,6 +34,49 @@ void taskAPmode(void* pvParameters) {
 		vTaskDelay(1);
 	}
 }
+
+void WiFiInit() {
+	WiFi.mode(WIFI_STA);
+	WiFi.begin(config.ssid, config.password);
+	// Wait for connection
+	int pause = 0;
+	while (WiFi.status() != WL_CONNECTED) {
+		if (pause >= 60) {	// Если не удалось подключиться к роутеру в течении 60 сек. Перегружаемся в режим AP
+			config.APmode = true;
+			saveConfigsToFile();
+			Serial.println("Rebooting to AP Mode");
+			resetHandler();
+		}
+		delay(1000);
+		Serial.print(".");
+		pause++;
+	}
+	Serial.println("");
+	Serial.print("Connected to ");
+	Serial.println(config.ssid);
+	Serial.print("IP address: ");
+	Serial.println(WiFi.localIP());
+
+#ifdef DEBUG
+	Serial.println("WiFiInit");
+#endif // DEBUG
+
+}
+
+void MDNSInit() {
+	if (MDNS.begin(hostName)) {
+		MDNS.addService("http", "tcp", 80);
+		Serial.println("MDNS responder started");
+		Serial.print("You can now connect to http://");
+		Serial.print(hostName);
+		Serial.println(".local");
+#ifdef DEBUG
+		Serial.println("MDNSInit");
+#endif // DEBUG
+	}
+}
+
+// WiFi methods BEGIN
 bool checkAPinair(String name) {
 	name.toUpperCase();
 

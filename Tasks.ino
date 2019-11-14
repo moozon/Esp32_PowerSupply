@@ -1,6 +1,8 @@
 void taskMain(void* pvParameters)
 {
-	//Serial.println("TaskMain is running");
+#ifdef DEBUG
+	Serial.println("TaskMain is running");
+#endif // DEBUG
 	for (;;)
 	{
 		//Serial.println("taskMain - " + String(xPortGetCoreID()) + "  Free: " + String(xPortGetFreeHeapSize()));
@@ -12,7 +14,11 @@ void taskMain(void* pvParameters)
 void taskMeasure(void* pvParameters)
 {
 	(void)pvParameters;
+
+#ifdef DEBUG
 	Serial.println("TaskMeasure is running");
+#endif // DEBUG
+
 	for (;;)
 	{
 		vTaskDelay(1000);
@@ -23,7 +29,11 @@ void taskMeasure(void* pvParameters)
 void taskTest(void* pvParameters)
 {
 	(void)pvParameters;
-	//Serial.println("TaskTest is running");
+	
+#ifdef DEBUG
+	Serial.println("TaskTest is running");
+#endif // DEBUG
+
 	for (;;)
 	{
 		vTaskDelay(1000);
@@ -32,7 +42,11 @@ void taskTest(void* pvParameters)
 void taskCalc(void* pvParameters)
 {
 	(void)pvParameters;
-	//Serial.println("TaskTest is running");
+
+#ifdef DEBUG
+	Serial.println("TaskCalc is running");
+#endif // DEBUG
+
 	//vTaskSuspend(xHandleTaskCalc);
 	for (;;)
 	{
@@ -42,21 +56,28 @@ void taskCalc(void* pvParameters)
 }
 void taskBlink(void* pvParameters)
 {
+#ifdef DEBUG
+	Serial.println("TaskBlink is running");
+#endif // DEBUG
 	if (!config.blink) vTaskSuspend(xHandleTaskBlink);
-	//Serial.println(F("TaskBlink is running"));
+	
 	//pinMode(LED_BUILTIN, OUTPUT);
 	bool ledState = false;
 	for (;;)
 	{
 		ledState = !ledState;
 		digitalWrite(LED_BUILTIN, ledState);
-		vTaskDelay(ledBlinkDelay);
+		vTaskDelay(config.blinkDelay);
 	}
 }
 void taskSerial(void* pvParameters)  // This is a task.
 {
 	(void)pvParameters;
-	//Serial.println("TaskSerial is running");
+
+#ifdef DEBUG
+	Serial.println("TaskSerial is running");
+#endif // DEBUG
+	
 	for (;;)
 	{
 		if (Serial.available())

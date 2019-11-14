@@ -2,20 +2,30 @@
 void taskDebug(void* pvParameters)
 {
 	(void)pvParameters;
-	//Serial.println("TaskDebug is running");
+
+#ifdef DEBUG
+	Serial.println("TaskDebug is running");
+#endif // DEBUG
+	
 	if (!config.debug)	vTaskSuspend(xHandleTaskDebug);
 
 	char buf[1024];
 
 	for (;;)
 	{
+		if (config.debugWiFi) {
+			debugWiFiStr = "Free heap : " + String(ESP.getFreeHeap());
+		}
+///////////////////////////////////////vTaskList//////////////////////////////////////////////////
 		/*vTaskList(buf);
 		Serial.printf(buf);
 		Serial.println("/////////////////////////////////////");
 		vTaskGetRunTimeStats(buf);
 		Serial.printf(buf);
 		Serial.println("/////////////////////////////////////");
-		debugString = "Free heap : " + String(ESP.getFreeHeap());*/
+		debugWiFiStr = "Free heap : " + String(ESP.getFreeHeap());*/
+
+
 
 		//debugPrint("Free heap: " + ESP.getFreeHeap());
 		//Serial.printf("Free heap: %u\n", ESP.getFreeHeap());
@@ -47,14 +57,14 @@ void taskDebug(void* pvParameters)
 	}
 }
 void debugPrint(String str) {
-	debugString = str;
+	debugWiFiStr = str;
 	Serial.println();
 	Serial.print("Debug:	");
-	Serial.println(str);;
+	Serial.println(str);
 	Serial.println();
 }
 void debugPrint(String str1, String str2) {
-	debugString = str1 + " " + str2;
+	debugWiFiStr = str1 + " " + str2;
 	//Serial.println();
 	Serial.print("Debug:	");
 	Serial.print(str1);

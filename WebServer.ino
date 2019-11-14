@@ -1,8 +1,13 @@
 // WebServer methods BEGIN
 void taskWebServer(void* pvParameters)
 {
+#ifdef DEBUG
+	Serial.println("TaskWebServer is running");
+#endif // DEBUG
 	// Обарботка запросов
  
+	//server.on("/update_firmware_page", HTTP_GET, updateFirmwarePageHandler);
+	server.on("/update_firmware", HTTP_POST, postUpdateFirmwareHandler, updateFirmwareHandler);
 	server.on("/get_debug_wifi", debugWifiHandler);
 	server.on("/led_switch", ledSwitchHandler);
 	server.on("/get_values", getValuesHandler);
@@ -14,6 +19,7 @@ void taskWebServer(void* pvParameters)
 	server.on("/dec_i", decIHandler);
 	server.on("/on", onHandler);
 	server.on("/reset", resetHandler);
+	server.on("/sleep", sleepHandler);
 	server.on("/save_settings", saveSettingsHandler);
 	server.on("/get_config", getConfigHandler);
 	server.on("/save_to_file", saveConfigsToFile);
@@ -45,8 +51,62 @@ void taskWebServer(void* pvParameters)
 	}
 }
 
+//void updateFirmwarePageHandler() {
+//	server.sendHeader("Connection", "close");
+//	server.send(200, "text/html", updateIndex);
+//}
+void updateFirmwareHandler() {
+	uint32_t blinkDelayOld = config.blinkDelay;
+	config.blinkDelay = 50;
+	HTTPUpload& upload = server.upload();
+	if (upload.status == UPLOAD_FILE_START) {
+		Serial.setDebugOutput(true);
+		Serial.printf("Update: %s\n", upload.filename.c_str());
+		if (!Update.begin()) { //start with max available size
+			Update.printError(Serial);
+		}
+	}
+	else if (upload.status == UPLOAD_FILE_WRITE) {
+		if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+			Update.printError(Serial);
+		}
+	}
+	else if (upload.status == UPLOAD_FILE_END) {
+		if (Update.end(true)) { //true to set the size to the current progress
+			Serial.printf("Update Success: %u\nRebooting...\n", upload.totalSize);
+		}
+		else {
+			Update.printError(Serial);
+		}
+		Serial.setDebugOutput(false);
+	}
+	else {
+		Serial.printf("Update Failed Unexpectedly (likely broken connection): status=%d\n", upload.status);
+	}
+	config.blinkDelay = blinkDelayOld;
+}
+
+void postUpdateFirmwareHandler() {
+	if (Update.hasError()) {
+		server.sendHeader("Connection", "close");
+		server.send(200, "text/plain", "FAIL");
+	}
+	else { 
+		server.sendHeader("Connection", "close");
+		server.send(200, "text/plain", "Update completed successfully. Please reload the webpage(Press F5)");
+	
+	}
+	//delay(500);
+	//Serial.println(F("Esp32 will now is rebooting"));
+	ESP.restart();
+
+	/*server.sendHeader("Connection", "close");
+	server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "OK");
+	ESP.restart();*/
+}
+
 void debugWifiHandler() {
-	server.send(200, "text/plain", debugString);
+	server.send(200, "text/plain", debugWiFiStr);
 }
 
 void saveConfigHandler() {
@@ -55,42 +115,41 @@ void saveConfigHandler() {
 void saveConfigPostHandler() {
 	// функция fetch с методом POST
 
-	//WiFiClient client = server.client();
-
-	//while (client.connected()) {            // loop while the client's connected
-	//	if (client.available()) {             // if there's bytes to read from the client,
-	//		char c = client.read();             // read a byte, then
-	//		Serial.write(c);
-	//	}
-	//}
-
-	//String jsonStr = server.client().readString();
-	//StaticJsonDocument<256> jdoc;
-	//serializeJson()
-	/*Serial.println(server.arg("ssid"));
-	config.ftpServer = server.arg("ftpServer");
-	config.APmode = server.arg("APmode");
-	config.debug = server.arg("debug");
-	config.blink = server.arg("blink");*/
+	String json = server.arg("plain");
+	server.sendHeader("Location", "/settings.html");
+	server.send(303);
 	
-	config.ftpServer = (server.arg("ftpServer") == "true") ? true : false;
-	config.APmode = (server.arg("APmode") == "true") ? true : false;
-	config.debug = (server.arg("debug") == "true") ? true : false;
-	config.blink = (server.arg("blink") == "true") ? true : false;
-	String s = server.arg("blink");
-	Serial.println(s);
+	StaticJsonDocument<512> jsonDoc;
+	DeserializationError error = deserializeJson(jsonDoc, json);
+	if (error) {
+		Serial.print(F("deserializeJson() failed: "));
+		Serial.println(error.c_str());
+		return;
+	}
+
+	config.ftpServer = jsonDoc["ftpServer"];
+	config.APmode = jsonDoc["APmode"];
+	config.debug = jsonDoc["debug"];
+	config.debugWiFi = jsonDoc["debugWiFi"];
+	config.blink = jsonDoc["blink"];
+	config.blinkDelay = jsonDoc["blinkDelay"];
+	const char *ssid = jsonDoc["ssid"];
+	const char *password = jsonDoc["password"];
+	
+	config.ssid = (char*)ssid;
+	config.password = (char*)password;
+	
 	// Submit формы
 	/*config.ftpServer = (server.arg("ftpServer") == "on") ? true : false;
 	config.APmode = (server.arg("APmode") == "on") ? true : false;
 	config.debug = (server.arg("debug") == "on") ? true : false;
 	config.blink = (server.arg("blink") == "on") ? true : false;*/
-	server.arg("ssid").toCharArray(config.ssid, 25);
-	server.arg("password").toCharArray(config.password, 15);
-	//config.ssid = server.arg("ssid");
-	//config.password = server.arg("password");
+	//server.arg("ssid").toCharArray(config.ssid, 25);
+	//server.arg("password").toCharArray(config.password, 15);
+	////config.ssid = server.arg("ssid");
+	////config.password = server.arg("password");
 
-	server.sendHeader("Location", "/settings.html");
-	server.send(303);
+	
 	updLcd = true;
 	updateConfigs();
 }
@@ -98,11 +157,13 @@ void getConfigHandler() {
 	String jsonResponse;
 	StaticJsonDocument<512> jsonDoc;
 	jsonDoc["debug"] = config.debug;
+	jsonDoc["debugWiFi"] = config.debugWiFi;
 	jsonDoc["blink"] = config.blink;
 	jsonDoc["ssid"] = config.ssid;
 	jsonDoc["password"] = config.password;
 	jsonDoc["APmode"] = config.APmode;
 	jsonDoc["ftpServer"] = config.ftpServer;
+	jsonDoc["blinkDelay"] = config.blinkDelay;
 
 	serializeJson(jsonDoc, jsonResponse);
 
@@ -175,7 +236,9 @@ void getValuesHandler() {
 	jsonDoc["ISet"] = (menu[1].valueSet);
 	jsonDoc["ON"] = ON;
 	jsonDoc["debug"] = config.debug;
+	jsonDoc["debugWiFi"] = config.debugWiFi;
 	jsonDoc["blink"] = config.blink;
+	jsonDoc["blinkDelay"] = config.blinkDelay;
 	//String time = (String(dateTime.hour) + ':' + String(dateTime.minute) + ':' + String(dateTime.second));
 	//String date = (String(dateTime.day) + ':' + String(dateTime.month) + ':' + String(dateTime.year));
 	jsonDoc["time"] = dateTime.time;
@@ -237,6 +300,12 @@ void resetHandler() {
 	esp_register_shutdown_handler(beforeReset);
 	esp_restart();
 }
+void sleepHandler() {
+	int seconds = server.arg("sleep").toInt();
+	debugPrint("Going to deep sleep");
+	esp_deep_sleep(seconds * 1000000);
+}
+
 void beforeReset() {
 	for (size_t i = 10; i > 1; i--)
 	{
