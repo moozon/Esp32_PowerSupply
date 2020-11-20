@@ -223,6 +223,12 @@ void longPressStart() {
 		}*/
 	}
 	else if (screen == 1) {
+		screen = 2;
+		//lcd.noCursor();
+		//fl = true;
+		//updLcd = true;
+	}
+	else if (screen == 2) {
 		screen = 0;
 		//lcd.noCursor();
 		//fl = true;

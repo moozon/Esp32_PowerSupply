@@ -39,21 +39,26 @@ void lcdUpdate() {
 			lcd.noCursor();
 			lcd.print("U:");
 			lcd.print(menu[0].value);
-			if (!uSetOver) lcd.print(' ');
+			//if (!uSetOver) lcd.print(' ');
 			lcd.print(' ');
 			lcd.print(menu[0].name2);
+			lcd.print(' ');
 			lcd.setCursor(10, 0);
 			lcd.print("I:");
 			lcd.print(menu[1].value);
-			if (!iSetOver) lcd.print(' ');
+			//if (!iSetOver) lcd.print(' ');
 			lcd.print(' ');
 			lcd.print(menu[1].name2);
+			lcd.print(' ');
 			lcd.setCursor(0, 1);
 			lcd.print("P:");
 			lcd.print(menu[2].value);
-			if (!pOver) lcd.print(' ');
+			//if (!pOver) lcd.print(' ');
+			if (menu[2].value > 99)
+
 			lcd.print(' ');
 			lcd.print(menu[2].name2);
+			lcd.print(' ');
 			lcd.setCursor(10, 1);
 			lcd.print("Load: ");
 			if (ON) lcd.print("ON ");
@@ -85,16 +90,18 @@ void lcdUpdate() {
 			lcd.print(menu[0].valueSet);
 			//lcd.print(test);
 			//lcd.print(menu[0].valueSet);
-			if (!uSetOver) lcd.print(' ');
+			//if (!uSetOver) lcd.print(' ');		// Проверка на десятичность значения
 			lcd.print(' ');
 			lcd.print(menu[0].name2);
+			lcd.print(' ');
 			lcd.setCursor(6, 1);
 			lcd.print("I=");
 			lcd.print(menu[1].valueSet);
 			//lcd.print(menu[1].valueSet);
-			if (!iSetOver) lcd.print(' ');
+			//if (!iSetOver) lcd.print(' ');		// Проверка на десятичность значения
 			lcd.print(' ');
 			lcd.print(menu[1].name2);
+			lcd.print(' ');
 			if (cursor_pos == 0) {
 				lcd.setCursor(8, 0);
 			}

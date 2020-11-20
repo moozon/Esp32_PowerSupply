@@ -3,7 +3,14 @@
     Created:	18.09.2019 1:38:59
     Author:     NETBOOK\Michael
 */
-
+//
+//#include <Adafruit_SPITFT_Macros.h>
+//#include <Adafruit_SPITFT.h>
+//#include <Adafruit_GFX.h>
+//#include <ArduinoJson.hpp>
+#include <splash.h>
+#include <Adafruit_SSD1306.h>
+#include <ArduinoJson.hpp>
 #include <ArduinoJson.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
@@ -36,7 +43,7 @@
 
 
 // Ping
-#include <ESP32Ping.h>
+//#include <ESP32Ping.h>
 
 // TimeNTP
 #include <TimeLib.h>
@@ -46,12 +53,13 @@
 
 
 // User Define
-//#define DEBUG
+#define DEBUG
 #define PING_AVERAGE_SIZE 10
 #define TASK_STACK_SIZE 2048
 #define LED_BUILTIN 22
-#define PIN_DAC1 25
-#define PIN_DAC2 26
+//#define LED_BUILTIN TX
+#define PIN_DAC1 DAC1
+#define PIN_DAC2 DAC2
 #define PIN_A 32 
 #define PIN_B 33
 #define PIN_SW 12
@@ -262,9 +270,9 @@ struct  itemMenu {
 //itemMenu Watt = { 3, 1.0, 'W', 2 };
 //itemMenu Mode = { 0, 1.0, NULL, 3 };
 
-itemMenu menu[MENU_ELEMENTS] = { { 4, 1.0, 'V', 0 }		// Volt
-										, { 1, 1.0, 'A', 1 }		// Amp
-										, { 3, 1.0, 'W', 2 }		// Watt
+itemMenu menu[MENU_ELEMENTS] = { { 12, 1.0, 'V', 0 }		// Volt
+										, { 10, 1.0, 'A', 1 }		// Amp
+										, { 30, 1.0, 'W', 2 }		// Watt
 										, { 0, 1.0, NULL, 3 } };	// Mode
 
 //volatile boolean ledState = true;
@@ -290,6 +298,9 @@ void setup() {
 	// Load configuration from config file from SPIFFS
 	//saveConfigsToFile();	// Need run once for NULL Value Exception on first loadConfigsFromFile()
 	loadConfigsFromFile();
+	// My configs
+	config.uSet = 12.00;
+	config.iSet = 30.00;
 	uSet = config.uSet;
 	iSet = config.iSet;
 	debug = config.debug;
@@ -340,7 +351,7 @@ void setup() {
 		NTPInit();
 
 		// Blynk Setup
-		blynkInit();
+		//blynkInit();
 
 		// OneButton Setup
 		oneButtonInit();
