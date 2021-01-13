@@ -8,9 +8,6 @@
 //#include <Adafruit_SPITFT.h>
 //#include <Adafruit_GFX.h>
 //#include <ArduinoJson.hpp>
-#include <splash.h>
-#include <Adafruit_SSD1306.h>
-#include <ArduinoJson.hpp>
 #include <ArduinoJson.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
